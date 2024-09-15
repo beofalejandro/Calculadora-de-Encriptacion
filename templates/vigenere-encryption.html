@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirado de Vigenere</title>
+    <link rel="stylesheet" href=" {{url_for('static', filename='pages/projects-template.css')}} "/>
+    <link rel="stylesheet" href=" {{url_for('static', filename='pages/cesar-encription.css')}} "/>
+    <link rel="stylesheet" href=" {{url_for('static', filename='template.css')}} " />
+</head>
+
+<body>
+    <header class="sidebar">
+        <ul class="sidebar-list">
+            <li class="sidebar-item">
+                <a href="/"><button class="sidebar-menu-link">Principal</button></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/cesar-encription"><button class="sidebar-menu-link">Cifrado Cesar</button></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#"><button class="sidebar-menu-link active" disabled>Cifrado de Vigenere</button></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/vernam-encryption"><button class="sidebar-menu-link ">Cifrado Vernam</button></a>
+            </li>
+        </ul>
+    </header>
+
+    <main class="content">
+        <div class="header">
+            <h2>Cifrado de Vigenere</h2>
+        </div>
+        <!-- ENCRYPTION CALCULATOR -->
+        <div class="proj-content" id="proj-container">
+            <div class="description">
+                <h2>Calculadora de encriptacion del cifrado de Vigenere</h2>
+            </div>
+
+            <div class="controls">
+                <button class="button" id="boton_panel_cifrar">Cifar</button>
+                <button class="button" id="boton_panel_descifrar">Descifrar</button>
+            </div>
+
+            <div class="form-container" id="cifrar">
+                <form action="/vigenere-encrypt" method="POST">
+                    <p>Cifrado</p>
+                    <div>
+                        <label for="message">Mensaje:</label>
+                        <input type="text" name="message" required>
+                    </div>
+                    <div>
+                        <label for="clave">Clave:</label>
+                        <input type="text" name="clave" required>
+                    </div>
+                    <div class="controls">
+                        <button type="submit" class="button">Cifrar</button>
+                    </div>
+                </form>
+                <div class="output">
+                    {% if output_vigenere_cifrado %}
+                    <p>Salida:</p>
+                    <p>{{ output_vigenere_cifrado }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="descifrar">
+                <form action="/vigenere-desencrypt" method="POST">
+                    <p>Desifrado</p>
+                    <div>
+                        <label for="message">Mensaje:</label>
+                        <input type="text" name="message" required>
+                    </div>
+                    <div>
+                        <label for="despl">Desplazamiento del cifrado:</label>
+                        <input type="text" name="clave" required>
+                    </div>
+                    <div class="controls">
+                        <button type="submit" class="button">Descifrar</button>
+                    </div>
+                </form>
+                <div class="output">
+                    {% if output_vigenere_descifrado %}
+                    <p>{{ output_vigenere_descifrado }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="../static/scripts/proyect.js"></script>
+
+</body>
+
+</html>
