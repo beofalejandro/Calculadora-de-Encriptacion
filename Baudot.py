@@ -1,58 +1,89 @@
-# Tabla de código Baudot simplificada (5 bits por carácter)
-baudot_code = {
-    'A': '00011', 'B': '11001', 'C': '01110', 'D': '01001', 'E': '00001',
-    'F': '01101', 'G': '11010', 'H': '10100', 'I': '00110', 'J': '01011',
-    'K': '01111', 'L': '10010', 'M': '11100', 'N': '01100', 'O': '11000',
-    'P': '10110', 'Q': '10111', 'R': '01010', 'S': '00101', 'T': '10000',
-    'U': '00111', 'V': '11110', 'W': '10011', 'X': '11101', 'Y': '10101',
-    'Z': '10001', ' ': '00000'  # Incluimos el espacio como parte del mapeo
-}
+import string
+import random
 
-# Inversa para descifrar
-baudot_code_inv = {v: k for k, v in baudot_code.items()}
+# Crear el mapeo entre letras y números
+def create_mapping():
+    alphabet = string.ascii_lowercase
+    return {char: idx for idx, char in enumerate(alphabet)}
 
-def text_to_baudot(text):
-    """Convierte texto a su representación en código Baudot binario."""
-    return ''.join(baudot_code.get(char.upper(), '00000') for char in text)
+# Convertir texto a números
+def text_to_numbers(text, mapping):
+    return [mapping[char] for char in text.lower() if char in mapping]
 
-def baudot_to_text(binary):
-    """Convierte una cadena de bits en código Baudot a texto."""
-    chars = [baudot_code_inv.get(binary[i:i+5], '?') for i in range(0, len(binary), 5)]
-    return ''.join(chars)
+# Convertir números a texto
+def numbers_to_text(numbers, reverse_mapping):
+    return ''.join(reverse_mapping[num] for num in numbers)
 
-def vernam_encrypt(plain_text, key):
-    """Cifra el texto plano usando el cifrado Vernam."""
-    # Convertir texto y clave a código Baudot
-    binary_plain = text_to_baudot(plain_text)
-    binary_key = text_to_baudot(key)
+# Función para calcular el máximo común divisor
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+# Función para calcular el inverso modular usando el algoritmo extendido de Euclides
+def mod_inverse(e, phi):
+    m0, x0, x1 = phi, 0, 1
+    while e > 1:
+        q = e // phi
+        e, phi = phi, e % phi
+        x0, x1 = x1 - q * x0, x0
+    return x1 + m0 if x1 < 0 else x1
+
+# Función para generar claves RSA
+def generate_rsa_keys():
+    # Dos números primos grandes (puedes cambiarlos por valores más grandes)
+    p = 61
+    q = 53
+    n = p * q
+    phi = (p - 1) * (q - 1)
     
-    # Asegurar que la clave es al menos tan larga como el texto
-    if len(binary_key) < len(binary_plain):
-        raise ValueError("La clave debe ser al menos tan larga como el texto.")
-
-    # Aplicar XOR para cifrar
-    cipher_binary = ''.join(str(int(a) ^ int(b)) for a, b in zip(binary_plain, binary_key))
-    return cipher_binary
-
-def vernam_decrypt(cipher_text, key):
-    """Descifra el texto cifrado usando el cifrado Vernam."""
-    # Convertir clave a código Baudot
-    binary_key = text_to_baudot(key)
+    # Elegir un entero 'e' tal que 1 < e < phi y gcd(e, phi) = 1
+    e = random.choice([x for x in range(2, phi) if gcd(x, phi) == 1])
     
-    # Aplicar XOR para descifrar
-    plain_binary = ''.join(str(int(a) ^ int(b)) for a, b in zip(cipher_text, binary_key))
+    # Calcular d, el inverso modular de e
+    d = mod_inverse(e, phi)
     
-    # Convertir binario a texto
-    return baudot_to_text(plain_binary)
+    # Clave pública (e, n) y clave privada (d, n)
+    return (e, n), (d, n)
 
-# Ejemplo de uso
-mensaje = "HELLO WOLRD"
-clave = "10001 10001 11000"
+# Cifrar usando la clave pública
+def rsa_encrypt(numbers, public_key):
+    e, n = public_key
+    return [(num ** e) % n for num in numbers]
 
-# Cifrar
-cifrado = vernam_encrypt(mensaje, clave)
-print(f"Texto cifrado: {cifrado}")
+# Descifrar usando la clave privada
+def rsa_decrypt(encrypted_numbers, private_key):
+    d, n = private_key
+    return [(num ** d) % n for num in encrypted_numbers]
 
-# Descifrar
-descifrado = vernam_decrypt(cifrado, clave)
-print(f"Texto descifrado: {descifrado}")
+def main():
+    # Crear el mapeo entre letras y números
+    mapping = create_mapping()
+    reverse_mapping = {v: k for k, v in mapping.items()}
+    
+    # Texto a cifrar
+    text = "rojo"
+    
+    # Convertir el texto en números
+    text_numbers = text_to_numbers(text, mapping)
+    print(f"Texto convertido a números: {text_numbers}")
+    
+    # Generar claves RSA
+    public_key, private_key = generate_rsa_keys()
+    print(f"Clave pública: {public_key}")
+    print(f"Clave privada: {private_key}")
+    
+    # Cifrar los números usando la clave pública
+    encrypted_numbers = rsa_encrypt(text_numbers, public_key)
+    print(f"Números cifrados con RSA: {encrypted_numbers}")
+    
+    # Descifrar los números usando la clave privada
+    decrypted_numbers = rsa_decrypt(encrypted_numbers, private_key)
+    print(f"Números descifrados: {decrypted_numbers}")
+    
+    # Convertir los números descifrados de vuelta a texto
+    decrypted_text = numbers_to_text(decrypted_numbers, reverse_mapping)
+    print(f"Texto descifrado: {decrypted_text}")
+
+if __name__ == "__main__":
+    main()

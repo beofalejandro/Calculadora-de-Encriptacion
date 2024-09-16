@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirado RSA</title>
+    <link rel="stylesheet" href=" {{url_for('static', filename='pages/projects-template.css')}} " />
+    <link rel="stylesheet" href=" {{url_for('static', filename='template.css')}} " />
+</head>
+
+<body>
+    <header class="sidebar">
+        <ul class="sidebar-list">
+            <li class="sidebar-item">
+                <a href="/"><button class="sidebar-menu-link">Principal</button></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/cesar-encription"><button class="sidebar-menu-link">Cifrado Cesar</button></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/vigenere-encryption"><button class="sidebar-menu-link">Cifrado de Vigenere</button></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="/vernam-encryption"><button class="sidebar-menu-link">Cifrado Vernam</button></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#"><button class="sidebar-menu-link active" disabled>Cifrado RSA</button></a>
+            </li>
+        </ul>
+    </header>
+
+    <main class="content">
+        <div class="header">
+            <h2>Cifrado RSA</h2>
+        </div>
+        <!-- ENCRYPTION CALCULATOR -->
+        <div class="proj-content" id="proj-container">
+            <div class="description">
+                <h2>Calculadora de encriptacion del metodo de cifrado RSA</h2>
+            </div>
+
+            <div class="controls">
+                <button class="button" id="boton_panel_cifrar">Cifar</button>
+                <button class="button" id="boton_panel_descifrar">Descifrar</button>
+            </div>
+
+            <div class="form-container" id="cifrar">
+                <form action="/rsa-encrypt" method="POST">
+                    <p>Cifrado</p>
+                    <div>
+                        <label for="message">Mensaje:</label>
+                        <input type="text" name="message" required>
+                    </div>
+                    <div>
+                        <label for="despl">Numero Primo:</label>
+                        <input type="text" name="num1" required value="61">
+                    </div>
+                    <div>
+                        <label for="despl">Numero Primo:</label>
+                        <input type="text" name="num2" required value="53">
+                    </div>
+                    <div class="controls">
+                        <button type="submit" class="button">Cifrar</button>
+                    </div>
+                </form>
+                <div class="output">
+                    {% if text_to_number, output_rsa_cifrado %}
+                    <p>Salida:</p>
+                    <p>{{ text_to_number, output_rsa_cifrado }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="descifrar">
+                <form action="/cesar-desencrypt" method="POST">
+                    <p>Desifrado</p>
+                    <div>
+                        <label for="message">Mensaje:</label>
+                        <input type="text" name="message" required>
+                    </div>
+                    <div>
+                        <label for="despl">Clave Privada:</label>
+                        <input type="text" name="clave_privada" required>
+                    </div>
+                    <div class="controls">
+                        <button type="submit" class="button">Descifrar</button>
+                    </div>
+                </form>
+                <div class="output">
+                    {% if rsa_decifrado, output_rsa_descifrado %}
+                    <p>{{ rsa_decifrado, output_rsa_descifrado}}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="../static/scripts/proyect.js"></script>
+
+</body>
+
+</html>

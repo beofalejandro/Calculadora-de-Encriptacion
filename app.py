@@ -1,4 +1,6 @@
 from flask import Flask as fk, render_template as rt, request as rq
+import string
+import random
 
 app = fk(__name__)
 
@@ -11,6 +13,11 @@ def index():
 @app.route('/cesar-encription')
 def cesar_calculator():
     return rt('cesar-encription.html')
+
+
+@app.route('/rsa-encryption')
+def rsa_calculator():
+    return rt('rsa-encryption.html')
 
 
 @app.route('/vigenere-encryption')
@@ -163,7 +170,7 @@ def text_to_baudot(text):
 def baudot_to_text(binary):
     """Convierte una cadena de bits en código Baudot a texto."""
     chars = [baudot_code_inv.get(binary[i:i+5], '?')
-                                 for i in range(0, len(binary), 5)]
+             for i in range(0, len(binary), 5)]
     return ''.join(chars)
 
 
@@ -192,6 +199,59 @@ def vernam_decrypt(cipher_text, key):
 
     # Convertir binario a texto
     return baudot_to_text(plain_binary)
+
+# RSA ENCRYPTION METHODS
+
+
+def create_mapping():
+    alphabet = string.ascii_lowercase
+    return {char: idx for idx, char in enumerate(alphabet)}
+
+
+def text_to_numbers(text, mapping):
+    return [mapping[char] for char in text.lower() if char in mapping]
+
+
+def numbers_to_text(numbers, reverse_mapping):
+    return ''.join(reverse_mapping[num] for num in numbers)
+
+
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+
+def mod_inverse(e, phi):
+    m0, x0, x1 = phi, 0, 1
+    while e > 1:
+        q = e // phi
+        e, phi = phi, e % phi
+        x0, x1 = x1 - q * x0, x0
+    return x1 + m0 if x1 < 0 else x1
+
+
+def generate_rsa_keys(p, q):
+    # p = 61
+    # q = 53
+    n = p * q
+    phi = (p - 1) * (q - 1)
+
+    e = random.choice([x for x in range(2, phi) if gcd(x, phi) == 1])
+
+    d = mod_inverse(e, phi)
+
+    return (e, n), (d, n)
+
+
+def rsa_encrypt(numbers, public_key):
+    e, n = public_key
+    return [(num ** e) % n for num in numbers]
+
+
+def rsa_decrypt(encrypted_numbers, private_key):
+    d, n = private_key
+    return [(num ** d) % n for num in encrypted_numbers]
 
 
 # CESAR ENCRYPTION METHODS
@@ -235,13 +295,15 @@ def vigenere_desencrypt():
     # vigenere_mensaje_descifrado = descifrar_vigenere(vigenere_cifrado, vigenere_clave)
     return rt('vigenere-encryption.html', output_vigenere_descifrado=str(descifrar_vigenere(vigenere_cifrado, vigenere_clave)))
 
+# VERNAM ENCRYPTION
+
 
 @app.route('/vernam-encrypt', methods=['POST'])
 def vernam_encryption():
     vernam_mensaje = str(rq.form['message'])
     vernam_clave = rq.form['clave']
 
-    return rt('vernam-encryption.html', output_vernam_cifrado = str(vernam_encrypt(vernam_mensaje, vernam_clave)))
+    return rt('vernam-encryption.html', output_vernam_cifrado=str(vernam_encrypt(vernam_mensaje, vernam_clave)))
 
 
 @app.route('/vernam-decrypt', methods=['POST'])
@@ -249,7 +311,26 @@ def vernam_decryption():
     vernam_cifrado = str(rq.form['message'])
     vernam_clave = rq.form['clave']
 
-    return rt('vernam-encryption.html', output_vernam_desifrado = str(vernam_decrypt(vernam_cifrado, vernam_clave)))
+    return rt('vernam-encryption.html', output_vernam_desifrado=str(vernam_decrypt(vernam_cifrado, vernam_clave)))
+
+# RSA Encryption
+
+
+@app.route('/rsa-encrypt', methods=['POST'])
+def rsa_encryption():
+    rsa_mensaje = str(rq.form['message'])
+    rsa_numero_primo1 = int(rq.form['num1'])
+    rsa_numero_primo2 = int(rq.form['num2'])
+    mapping = create_mapping()
+    reverse_mapping = {v: k for k, v in mapping.items()}
+
+    text_numbers = text_to_numbers(rsa_mensaje, mapping)
+    public_key, private_key = generate_rsa_keys(
+        rsa_numero_primo1, rsa_numero_primo2)
+    encrypted_numbers = rsa_encrypt(text_numbers, public_key)
+    decrypted_numbers = rsa_decrypt(encrypted_numbers, private_key)
+
+    return rt('rsa-encryption.html', text_to_number=text_to_numbers(rsa_mensaje, mapping), output_rsa_cifrado=str(rsa_encrypt(text_numbers, public_key)), rsa_decifrado=rsa_decrypt(encrypted_numbers, private_key) ,output_rsa_descifrado=str(numbers_to_text(decrypted_numbers, reverse_mapping)))
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
